@@ -1,9 +1,13 @@
 # src/finance_manager/main.py
 
-from datetime import date  # noqa: I001
+from datetime import date
+from pathlib import Path
 from models import Transaction
-from pydantic import ValidationError
+from storage import TransactionManager
 
+# Define the path to our data file
+DATA_DIR = Path.home() / ".finance_manager"
+TRANSACTIONS_FILE = DATA_DIR / "transactions.json"
 
 def run():
     """
@@ -11,39 +15,31 @@ def run():
     """
     print("Welcome to your Personal Finance Manager!")
 
-    # --- Let's test our Transaction model ---
+    # Create a TransactionManager instance
+    manager = TransactionManager(filepath=TRANSACTIONS_FILE)
 
-    # 1. A valid transaction
-    try:
-        t1 = Transaction(
-            id=1,
-            transaction_date=date.today(),
-            description="Morning Coffee",
-            amount=4.50,
-            category="Food & Drink"
-        )
-        print("\nSuccessfully created a valid transaction:")
-        print(t1)
-        print(f"Transaction amount is: ${t1.amount:.2f}")
+    # --- Let's add a new transaction ---
+    # In a real app, you would get this data from user input
+    new_transaction = Transaction(
+        id=len(manager.get_all()) + 1,
+        transaction_date=date.today(),
+        description="Weekly Groceries",
+        amount=150.75,
+        category="Groceries"
+    )
+    manager.add(new_transaction)
+    print(f"\nAdded new transaction: {new_transaction.description}")
 
-    except ValidationError as e:
-        print(e)
+    # --- List all transactions ---
+    all_transactions = manager.get_all()
+    print("\n--- All Transactions ---")
+    if not all_transactions:
+        print("No transactions found.")
+    else:
+        for t in all_transactions:
+            print(f"  - ID: {t.id}, Date: {t.transaction_date}, Desc: {t.description}, Amount: ${t.amount:.2f}, Category: {t.category}")
+    print("------------------------")
 
-
-    # 2. An invalid transaction (amount is 0)
-    print("\n---")
-    print("Attempting to create an invalid transaction (amount = 0)...")
-    try:
-        t2 = Transaction(
-            id=2,
-            transaction_date=date.today(),
-            description="Free Newspaper",
-            amount=0,
-            category="Entertainment"
-        )
-    except ValidationError as e:
-        print("Caught expected error:")
-        print(e)
 
 if __name__ == "__main__":
     run()
