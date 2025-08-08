@@ -1,0 +1,14 @@
+[project]
+name = "personal-finance-manager"
+version = "0.1.0"
+description = "A tool to manage personal finances."
+authors = [
+    { name = "Your Name", email = "your@email.com" },
+]
+requires-python = ">=3.8"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"] # Select error, pyflakes, warning, and isort rules
