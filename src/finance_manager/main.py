@@ -1,5 +1,3 @@
-# src/finance_manager/main.py
-
 from datetime import datetime
 from pathlib import Path
 
@@ -7,6 +5,7 @@ from pydantic import ValidationError
 
 from models import Transaction
 from storage import TransactionManager
+from reporting import get_summary_by_category
 
 # Define the path to our data file
 DATA_DIR = Path.home() / ".finance_manager"
@@ -84,24 +83,51 @@ def list_all_transactions(manager: TransactionManager):
         print(f"  ID: {t.id} | Date: {t.transaction_date} | Amount: ${t.amount:<8.2f} | Category: {t.category:<15} | Desc: {t.description}")
     print("------------------------\n")
 
+def show_summary_report(manager: TransactionManager):
+    """Generates and displays the category spending summary."""
+    print("\n--- Spending Summary by Category ---")
+    transactions = manager.get_all()
+
+    if not transactions:
+        print("No transactions to summarize.")
+        return
+
+    summary = get_summary_by_category(transactions)
+
+    if not summary:
+        print("No spending to summarize.")
+        return
+
+    # Find the longest category name for formatting
+    max_len = max(len(cat) for cat in summary.keys())
+
+    for category, total in summary.items():
+        print(f"  - {category:<{max_len}} : $ {total:9.2f}")
+    print("------------------------------------\n")
+
 
 def run():
     """The main application loop."""
     manager = TransactionManager(filepath=TRANSACTIONS_FILE)
 
     while True:
+        # <-- 2. UPDATE THE MENU
         print("\nWelcome to your Personal Finance Manager!")
         print("1. Add a new transaction")
         print("2. List all transactions")
-        print("3. Exit")
+        print("3. View summary report")
+        print("4. Exit")
         
-        choice = input("Enter your choice (1-3): ")
+        choice = input("Enter your choice (1-4): ")
 
+        # <-- 3. UPDATE THE IF/ELIF BLOCK
         if choice == '1':
             add_new_transaction(manager)
         elif choice == '2':
             list_all_transactions(manager)
         elif choice == '3':
+            show_summary_report(manager)
+        elif choice == '4':
             print("Goodbye!")
             break
         else:
